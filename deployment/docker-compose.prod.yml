@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - web
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+
+  web:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    expose:
+      - "8000"
+    depends_on:
+      - redis
+    volumes:
+      - /tmp/cloak_uploads:/tmp/cloak_uploads
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    command: celery -A backend.worker.tasks worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - GPU_ID=0
+    depends_on:
+      - redis
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - /tmp/cloak_uploads:/tmp/cloak_uploads
+
+  redis:
+    image: redis:6-alpine
+    expose:
+      - "6379"

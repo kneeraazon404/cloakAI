@@ -1,0 +1,262 @@
+:root {
+    --bg-color: #050505;
+    --panel-bg: #111111;
+    --text-primary: #e0e0e0;
+    --text-dim: #666;
+
+    --color-safe: #00ff9d;
+    /* Neon Green */
+    --color-warn: #fbbf24;
+    /* Amber */
+    --color-danger: #ff003c;
+    /* Cyber Red */
+    --color-accent: #00e5ff;
+    /* Cyan */
+
+    --border-color: #333;
+    --hud-border: 1px solid var(--border-color);
+
+    --font-main: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    background-image:
+        linear-gradient(rgba(20, 255, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 255, 0, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+.App {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Header */
+.App-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.brand-title {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    /* Bigger */
+    border-bottom: 2px solid var(--color-safe);
+    padding-bottom: 12px;
+    display: inline-block;
+}
+
+.version-tag {
+    font-size: 0.8rem;
+    background: var(--color-accent);
+    color: #000;
+    padding: 3px 8px;
+    margin-left: 12px;
+    font-weight: bold;
+}
+
+/* Main Panel */
+.security-panel {
+    width: 100%;
+    max-width: 800px;
+    /* Bigger */
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+    position: relative;
+}
+
+.panel-header {
+    background: #1a1a1a;
+    padding: 15px 25px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+}
+
+.panel-body {
+    padding: 40px;
+}
+
+/* Upload Zone */
+.drop-target {
+    border: 2px dashed var(--border-color);
+    background: rgba(255, 255, 255, 0.02);
+    height: 200px;
+    /* Bigger */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.drop-target:hover,
+.drop-target.active {
+    border-color: var(--color-accent);
+    background: rgba(0, 229, 255, 0.05);
+}
+
+.drop-target::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 15px;
+    height: 15px;
+    border-top: 2px solid var(--color-safe);
+    border-left: 2px solid var(--color-safe);
+}
+
+.drop-target::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 15px;
+    height: 15px;
+    border-bottom: 2px solid var(--color-safe);
+    border-right: 2px solid var(--color-safe);
+}
+
+.icon-large {
+    font-size: 3.5rem;
+    /* Bigger */
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+/* Controls */
+.control-group {
+    margin-top: 35px;
+}
+
+.label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    display: block;
+    letter-spacing: 1px;
+}
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.mode-btn {
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: var(--text-dim);
+    padding: 18px;
+    /* Bigger padding */
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.mode-btn:hover {
+    border-color: var(--text-dim);
+}
+
+.mode-btn.selected {
+    border-color: var(--color-safe);
+    color: var(--color-safe);
+    background: rgba(0, 255, 157, 0.05);
+    box-shadow: 0 0 15px rgba(0, 255, 157, 0.1);
+}
+
+/* Main Button */
+.btn-execute {
+    width: 100%;
+    margin-top: 40px;
+    padding: 22px;
+    /* Bigger */
+    background: var(--color-safe);
+    color: #000;
+    border: none;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+    transition: all 0.2s;
+}
+
+.btn-execute:hover:not(:disabled) {
+    background: #fff;
+    box-shadow: 0 0 30px var(--color-safe);
+}
+
+.btn-execute:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Console / Status */
+.console-output {
+    margin-top: 35px;
+    background: #000;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    height: 150px;
+    /* Bigger height */
+    overflow-y: auto;
+    color: var(--color-safe);
+    display: flex;
+    flex-direction: column;
+}
+
+.console-line {
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.console-line::before {
+    content: '> ';
+    color: var(--text-dim);
+}
+
+.progress-bar-container {
+    height: 4px;
+    /* Thicker */
+    background: #333;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--color-safe);
+    width: 0%;
+    transition: width 0.3s;
+    box-shadow: 0 0 8px var(--color-safe);
+}

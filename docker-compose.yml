@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CLOAK_MODE=low
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+      - /tmp/cloak_uploads:/tmp/cloak_uploads
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: celery -A backend.worker.tasks worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - GPU_ID=  # Disable GPU explicit call to force CPU fallback cleanly
+      - OMP_NUM_THREADS=6
+      - TF_NUM_INTRAOP_THREADS=6
+      - TF_NUM_INTEROP_THREADS=1
+    depends_on:
+      - redis
+    volumes:
+      - ./backend:/app/backend
+      - /tmp/cloak_uploads:/tmp/cloak_uploads
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
+  frontend:
+    image: node:16-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm start"
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
