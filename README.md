@@ -1,128 +1,182 @@
 # CloakAI
 
-**CloakAI** is an enterprise-grade privacy protection system designed to cloak images against unauthorized facial recognition models. It is built as a scalable, containerized web application suitable for high-security environments.
+CloakAI is an enterprise-grade privacy protection system that applies imperceptible perturbations to face images, rendering them resistant to unauthorized facial recognition systems while preserving visual quality. It is built as a scalable, containerized web application suitable for security-conscious deployments.
 
 ---
 
-## 🏗 System Architecture
+## Features
 
-The system follows a microservices architecture:
-
-*   **Frontend**: React SPA (Single Page Application) with a premium dark-mode interface.
-*   **API Gateway**: FastAPI (Python) handling secure uploads, validated requests.
-*   **Worker Nodes**: Celery workers performing the GPU-accelerated *CloakAI* algorithm.
-*   **Message Broker**: Redis for task queuing.
-
----
-## ⚡ Performance & Hardware Optimization
-
-The CloakAI algorithm is computationally intensive. Performance varies significantly between CPU and GPU execution.
-
-### Benchmarks (High Protection Mode)
-| Hardware | Avg. Time per Image | Optimization Note |
-|:---|:---:|:---|
-| **NVIDIA RTX 3060 / Tesla T4** | **~5-10s** | Requires NVIDIA Drivers + Container Toolkit |
-| **Data Center GPU (A100)** | **< 2s** | Enterprise grade performance |
-| **High-End CPU (e.g. Ryzen 5600)** | **~250s** | Set `OMP_NUM_THREADS` to physical core count |
-| **Standard Cloud CPU (2 vCPU)** | **> 600s** | Not recommended for production |
-
-> **Note for AMD GPU Users**: To utilize AMD GPUs (e.g., RX 6700 XT), the backend Docker image must be swapped for `rocm/tensorflow` and configured with device mapping (`/dev/kfd`, `/dev/dri`). By default, the system falls back to CPU on non-NVIDIA hardware.
+- **Privacy-first**: Leverages the Fawkes algorithm to cloak faces against recognition models (e.g., ArcFace-style extractors).
+- **Configurable protection**: Modes `low`, `mid`, and `high` trade off visibility of changes vs. strength of protection.
+- **Async processing**: FastAPI + Celery + Redis for non-blocking, queue-based workloads.
+- **GPU or CPU**: Optional GPU acceleration; falls back to CPU with tunable threading.
+- **REST API & docs**: OpenAPI documentation at `/docs`.
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## System Architecture
 
-### Prerequisites
-*   Docker & Docker Compose
-*   (Optional) NVIDIA GPU + Container Toolkit
+| Component | Technology | Role |
+|-----------|------------|------|
+| **Frontend** | React | SPA for upload, mode/format selection, status, and download |
+| **API** | FastAPI | Upload handling, task enqueue, status, and zip download |
+| **Worker** | Celery | Runs the Fawkes protection pipeline (TensorFlow) |
+| **Broker** | Redis | Task queue and result backend |
 
-### Running the App
-1.  **Start Services**:
-    ```bash
-    docker-compose up --build -d
-    ```
-    *Builds may take a few minutes initially.*
-
-2.  **Access Interfaces**:
-    *   **Web App**: [http://localhost:3000](http://localhost:3000)
-    *   **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-3.  **Logs**:
-    ```bash
-    docker-compose logs -f
-    ```
-
----
-
-## ☁️ Production Deployment Guide
-
-This section outlines deploying Fawkes Cloud to a production environment like AWS EC2, Azure VM, or Google Compute Engine.
-
-### 1. Hardware Requirements
-*   **Instance Type**:
-    *   **AWS**: `g4dn.xlarge` (Recommended for GPU) or `c5.2xlarge` (CPU only).
-    *   **Azure**: `Standard_NC4as_T4_v3`.
-*   **Storage**: At least 50GB SSD.
-
-### 2. Setup Host Machine
-Install Docker and NVIDIA Drivers (if using GPU).
-```bash
-# Example for Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y docker.io docker-compose
-# Follow NVIDIA docs for Container Toolkit
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   React    │────▶│   FastAPI   │────▶│   Redis    │
+│  ( :3000 ) │     │   ( :8000 ) │     │   ( :6379 ) │
+└─────────────┘     └──────┬──────┘     └──────┬──────┘
+                          │                    │
+                          ▼                    ▼
+                   ┌─────────────┐     ┌─────────────┐
+                   │   Celery    │◀────│   Worker    │
+                   │   Worker    │     │  (Fawkes)   │
+                   └─────────────┘     └─────────────┘
 ```
 
-### 3. Deploy Application
-1.  Clone this repository to the server.
-2.  Configuration:
-    *   Set `REACT_APP_API_URL` in `docker-compose.yml` to your server's public IP or Domain (e.g., `http://api.yourdomain.com`).
-    *   Ideally, serve the frontend via Nginx mostly statically, but the Docker composition handles dev-server for simplicity. Use `npm run build` for true production assets.
+---
 
-3.  Run in production mode:
-    ```bash
-    sudo docker-compose up --build -d
-    ```
+## Quick Start
 
-### 4. Reverse Proxy & SSL (Recommended)
-Do not expose ports 3000/8000 directly. Use Nginx with Let's Encrypt / Certbot.
+### Prerequisites
 
-**Sample Nginx Config:**
+- Docker and Docker Compose
+- (Optional) NVIDIA GPU and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) for GPU acceleration
+
+### Run
+
+```bash
+docker-compose up --build -d
+```
+
+- **Web app**: [http://localhost:3000](http://localhost:3000)  
+- **API docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+```bash
+docker-compose logs -f
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Service | Description | Default |
+|----------|---------|-------------|---------|
+| `REDIS_URL` | web, worker | Redis connection URL | `redis://localhost:6379/0` |
+| `REACT_APP_API_URL` | frontend | Public API base URL (used at build time) | `http://localhost:8000` |
+| `GPU_ID` | worker | GPU device ID; unset or empty for CPU | — |
+| `CLOAK_MODE` | web | Default protection mode | `low` |
+| `OMP_NUM_THREADS` | worker | OpenMP threads (CPU mode) | `6` |
+| `TF_NUM_INTRAOP_THREADS` | worker | TensorFlow intra-op threads | `6` |
+| `TF_NUM_INTEROP_THREADS` | worker | TensorFlow inter-op threads | `1` |
+
+### Secrets and Credentials
+
+- **Do not commit secrets** (API keys, tokens, passwords, or production URLs) to the repository.
+- Use a `.env` file for local overrides; it is in `.gitignore` and must remain untracked.
+- Optionally, keep a `.env.example` with placeholder variable names (no real values) and copy it to `.env` for local use.
+- In production, use your platform’s secret manager (e.g., Docker secrets, Kubernetes secrets, or a vault) and inject variables at runtime.  
+  Example: `REACT_APP_API_URL=https://api.your-domain.com` — replace with your own URL and manage it via secrets, not the repo.
+
+---
+
+## Performance
+
+CloakAI is compute-intensive. Approximate times per image (high protection mode):
+
+| Hardware | Time per image | Notes |
+|----------|----------------|-------|
+| NVIDIA RTX 3060 / Tesla T4 | ~5–10 s | NVIDIA Container Toolkit required |
+| Data center GPU (e.g. A100) | &lt; 2 s | Best for production |
+| High-end CPU (e.g. Ryzen 5600) | ~250 s | Set `OMP_NUM_THREADS` to physical core count |
+| Small cloud CPU (2 vCPU) | &gt; 600 s | Not recommended for production |
+
+**AMD GPUs**: Use a `rocm/tensorflow` image and map `/dev/kfd` and `/dev/dri`; otherwise the stack uses CPU.
+
+---
+
+## Production Deployment
+
+### 1. Hardware
+
+- **GPU**: e.g. AWS `g4dn.xlarge`, Azure `Standard_NC4as_T4_v3`, or similar.
+- **CPU-only**: e.g. AWS `c5.2xlarge`; tune `OMP_NUM_THREADS` and `TF_*` threads.
+- **Storage**: At least 50 GB SSD.
+
+### 2. Host setup
+
+Install Docker, Docker Compose, and (for GPU) NVIDIA drivers and the Container Toolkit. Example (Ubuntu/Debian):
+
+```bash
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose
+# Install NVIDIA drivers and Container Toolkit per NVIDIA docs
+```
+
+### 3. Configure and run
+
+1. Clone the repository.
+2. Set `REACT_APP_API_URL` to your public API URL (e.g. `https://api.your-domain.com`). Prefer build-time injection or a runtime config; keep the value out of the repo.
+3. Run with the production stack:
+
+   ```bash
+   docker-compose -f deployment/docker-compose.prod.yml up --build -d
+   ```
+
+### 4. Reverse proxy and TLS
+
+Do not expose `3000` or `8000` directly. Put Nginx (or another reverse proxy) in front and use TLS (e.g. Let’s Encrypt/Certbot).
+
+Example Nginx site (replace `your-domain.com` and paths as needed):
+
 ```nginx
 server {
     listen 80;
-    server_name fawkes.yourdomain.com;
+    server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 
     location /api/ {
-        proxy_pass http://localhost:8000/; # Trailing slash strips /api
+        proxy_pass http://web:8000/;
         proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
 
 ---
 
-## 🔒 Security Notes
-*   **Data Privacy**: Images are stored in `/tmp` by default. For compliance, configure a secure S3 bucket or ensure the temporary volume is encrypted and auto-cleaned.
-*   **Authentication**: This version is open access. Implement OAuth2 middleware in `backend/api/main.py` for user access control.
+## Security
 
-## 🛠 Directory Structure
-```text
-/
-├── backend/            # Python Services
-│   ├── api/            # FastAPI Endpoints
-│   ├── worker/         # Protection Logic (Celery)
-│   ├── core/           # Fawkes Algorithm Library
-│   └── config.py       # Configuration
-├── frontend/           # React Web Application
-├── deployment/         # Deployment Assets
-└── docker-compose.yml  # Orchestration
+- **Data**: Images are stored under `/tmp/cloak_uploads` by default. For stricter compliance, use a dedicated, encrypted volume or object storage (e.g. S3) and define retention and deletion policies.
+- **Access control**: The default API is open. For production, add authentication (e.g. OAuth2, API keys) in `backend/api/main.py` or at the reverse proxy.
+- **Secrets**: Keep all credentials and production URLs in `.env` (local, gitignored) or in a secret manager; never commit them.
+
+---
+
+## Project layout
+
+```
+├── backend/
+│   ├── api/           # FastAPI app
+│   ├── worker/         # Celery tasks
+│   ├── core/          # Fawkes algorithm (fawkes)
+│   └── config.py      # Celery/Redis config
+├── frontend/          # React SPA
+├── deployment/        # Prod compose, Nginx, checklist
+└── docker-compose.yml
 ```
 
 ---
 
-**License**: MIT / BSD-3 (Inherited from Fawkes Project)
+## License
+
+BSD-3-Clause (derived from the Fawkes project; see [LICENSE](LICENSE)).
