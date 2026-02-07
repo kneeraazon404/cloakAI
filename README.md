@@ -1,11 +1,12 @@
-# CloakAI Frontend
+# CloakAI Frontend (Next.js)
 
-This is the frontend repository for the CloakAI privacy protection system. It is a React Single Page Application (SPA).
+This is the frontend repository for the CloakAI privacy protection system, built with **Next.js**.
 
 ---
 
 ## Features
 
+- **Next.js App Router**: Optimized performance and routing.
 - **Upload Interface**: Drag-and-drop secure file upload.
 - **Privacy Controls**: Selectable protection modes (`low`, `mid`, `high`).
 - **Real-time Status**: Live progress tracking and status updates via API polling.
@@ -15,7 +16,8 @@ This is the frontend repository for the CloakAI privacy protection system. It is
 
 ## Tech Stack
 
-- **React**: UI library
+- **Next.js 16+**
+- **React 19**
 - **Axios**: API communication
 - **CSS**: Custom styling with responsive design
 
@@ -25,8 +27,7 @@ This is the frontend repository for the CloakAI privacy protection system. It is
 
 ### Prerequisites
 
-- Node.js (v14+)
-- npm
+- Node.js (v18+) // Updated for Next.js
 
 ### Installation
 
@@ -36,16 +37,16 @@ npm install
 
 ### Configuration
 
-Create a `.env` file in the root (or set environment variables in your deployment platform):
+Create a `.env.local` file in the root:
 
 ```env
-REACT_APP_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### Run Locally
 
 ```bash
-npm start
+npm run dev
 ```
 
 - App runs at: [http://localhost:3000](http://localhost:3000)
@@ -54,20 +55,17 @@ npm start
 
 ```bash
 npm run build
+npm start
 ```
 
 ---
 
 ## Deployment (Vercel)
 
-This project is configured for Vercel.
-
 1. Connect your repository to Vercel.
-2. Vercel should auto-detect "Create React App".
-3. Add the `REACT_APP_API_URL` environment variable in the Vercel project settings (pointing to your running backend API).
+2. Vercel automatically detects Next.js.
+3. Add the `NEXT_PUBLIC_API_URL` environment variable in the Vercel project settings (pointing to your running backend API).
 4. Deploy.
-
-A `vercel.json` file is included to handle client-side routing.
 
 ---
 
