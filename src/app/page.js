@@ -27,6 +27,7 @@ export default function Home() {
       logsEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [logs]);
+  
 
   // Timer logic
   useEffect(() => {
