@@ -16,12 +16,12 @@ CloakAI is an enterprise-grade privacy protection system that applies impercepti
 
 ## System Architecture
 
-| Component | Technology | Role |
-|-----------|------------|------|
-| **Frontend** | React | SPA for upload, mode/format selection, status, and download |
-| **API** | FastAPI | Upload handling, task enqueue, status, and zip download |
-| **Worker** | Celery | Runs the Fawkes protection pipeline (TensorFlow) |
-| **Broker** | Redis | Task queue and result backend |
+| Component    | Technology | Role                                                        |
+| ------------ | ---------- | ----------------------------------------------------------- |
+| **Frontend** | React      | SPA for upload, mode/format selection, status, and download |
+| **API**      | FastAPI    | Upload handling, task enqueue, status, and zip download     |
+| **Worker**   | Celery     | Runs the Fawkes protection pipeline (TensorFlow)            |
+| **Broker**   | Redis      | Task queue and result backend                               |
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -51,7 +51,7 @@ CloakAI is an enterprise-grade privacy protection system that applies impercepti
 docker-compose up --build -d
 ```
 
-- **Web app**: [http://localhost:3000](http://localhost:3000)  
+- **Web app**: [http://localhost:3000](http://localhost:3000)
 - **API docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ```bash
@@ -64,15 +64,15 @@ docker-compose logs -f
 
 ### Environment Variables
 
-| Variable | Service | Description | Default |
-|----------|---------|-------------|---------|
-| `REDIS_URL` | web, worker | Redis connection URL | `redis://localhost:6379/0` |
-| `REACT_APP_API_URL` | frontend | Public API base URL (used at build time) | `http://localhost:8000` |
-| `GPU_ID` | worker | GPU device ID; unset or empty for CPU | — |
-| `CLOAK_MODE` | web | Default protection mode | `low` |
-| `OMP_NUM_THREADS` | worker | OpenMP threads (CPU mode) | `6` |
-| `TF_NUM_INTRAOP_THREADS` | worker | TensorFlow intra-op threads | `6` |
-| `TF_NUM_INTEROP_THREADS` | worker | TensorFlow inter-op threads | `1` |
+| Variable                 | Service     | Description                              | Default                    |
+| ------------------------ | ----------- | ---------------------------------------- | -------------------------- |
+| `REDIS_URL`              | web, worker | Redis connection URL                     | `redis://localhost:6379/0` |
+| `REACT_APP_API_URL`      | frontend    | Public API base URL (used at build time) | `http://localhost:8000`    |
+| `GPU_ID`                 | worker      | GPU device ID; unset or empty for CPU    | —                          |
+| `CLOAK_MODE`             | web         | Default protection mode                  | `low`                      |
+| `OMP_NUM_THREADS`        | worker      | OpenMP threads (CPU mode)                | `6`                        |
+| `TF_NUM_INTRAOP_THREADS` | worker      | TensorFlow intra-op threads              | `6`                        |
+| `TF_NUM_INTEROP_THREADS` | worker      | TensorFlow inter-op threads              | `1`                        |
 
 ### Secrets and Credentials
 
@@ -88,12 +88,12 @@ docker-compose logs -f
 
 CloakAI is compute-intensive. Approximate times per image (high protection mode):
 
-| Hardware | Time per image | Notes |
-|----------|----------------|-------|
-| NVIDIA RTX 3060 / Tesla T4 | ~5–10 s | NVIDIA Container Toolkit required |
-| Data center GPU (e.g. A100) | &lt; 2 s | Best for production |
-| High-end CPU (e.g. Ryzen 5600) | ~250 s | Set `OMP_NUM_THREADS` to physical core count |
-| Small cloud CPU (2 vCPU) | &gt; 600 s | Not recommended for production |
+| Hardware                       | Time per image | Notes                                        |
+| ------------------------------ | -------------- | -------------------------------------------- |
+| NVIDIA RTX 3060 / Tesla T4     | ~5–10 s        | NVIDIA Container Toolkit required            |
+| Data center GPU (e.g. A100)    | &lt; 2 s       | Best for production                          |
+| High-end CPU (e.g. Ryzen 5600) | ~250 s         | Set `OMP_NUM_THREADS` to physical core count |
+| Small cloud CPU (2 vCPU)       | &gt; 600 s     | Not recommended for production               |
 
 **AMD GPUs**: Use a `rocm/tensorflow` image and map `/dev/kfd` and `/dev/dri`; otherwise the stack uses CPU.
 
