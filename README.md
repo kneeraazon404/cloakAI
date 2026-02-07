@@ -67,6 +67,11 @@ npm start
 3. Add the `NEXT_PUBLIC_API_URL` environment variable in the Vercel project settings (pointing to your running backend API).
 4. Deploy.
 
+### Common Issues
+
+- **Missing Root Directory**: Ensures your **Root Directory** in Vercel settings is set to `./` (empty), not `frontend`.
+- **Wrong Branch**: Ensure the **Production Branch** is set to `frontend`, not `main`.
+
 ---
 
 ## License
