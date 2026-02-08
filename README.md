@@ -1,25 +1,25 @@
-# CloakAI Backend
+# CloakAI Frontend (Next.js)
 
-This is the backend repository for the CloakAI privacy protection system. It provides the API, Celery workers, and Fawkes implementation.
+This is the frontend repository for the CloakAI privacy protection system, built with **Next.js**.
 
 ---
 
 ## Features
 
-- **FastAPI**: High-performance async API.
-- **Celery + Redis**: Asynchronous task queue for image processing.
-- **Fawkes Algorithm**: Image perturbation for privacy protection.
-- **Dockerized**: specific `Dockerfile` for easy deployment.
+- **Next.js App Router**: Optimized performance and routing.
+- **Upload Interface**: Drag-and-drop secure file upload.
+- **Privacy Controls**: Selectable protection modes (`low`, `mid`, `high`).
+- **Real-time Status**: Live progress tracking and status updates via API polling.
+- **Secure Download**: Retrieval of processed, cloaked images.
 
 ---
 
 ## Tech Stack
 
-- **Python 3.9+**
-- **FastAPI**
-- **Celery**
-- **TensorFlow** (for Fawkes)
-- **Redis**
+- **Next.js 16+**
+- **React 19**
+- **Axios**: API communication
+- **CSS**: Custom styling with responsive design
 
 ---
 
@@ -27,35 +27,50 @@ This is the backend repository for the CloakAI privacy protection system. It pro
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- (Optional) NVIDIA GPU for acceleration
+- Node.js (v18+) // Updated for Next.js
 
-### Run with Docker Compose
+### Installation
 
 ```bash
-docker-compose up --build -d
+npm install
 ```
 
-- **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+### Configuration
 
-### Deployment
+Create a `.env.local` file in the root:
 
-This branch is structured for backend deployment.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
-- **API**: Deploy `api/` or root `Dockerfile` to a container service (AWS ECS, Google Cloud Run, DigitalOcean App Platform).
-- **Worker**: Deploy the worker process using the same image but with a different command (e.g., `celery -A worker.celery_app worker`).
-- **Redis**: Use a managed Redis instance.
+### Run Locally
+
+```bash
+npm run dev
+```
+
+- App runs at: [http://localhost:3000](http://localhost:3000)
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
 
 ---
 
-## Environment Variables
+## Deployment (Vercel)
 
-See `.env.example` (if available) or the table below:
+1. Connect your repository to Vercel.
+2. Vercel automatically detects Next.js.
+3. Add the `NEXT_PUBLIC_API_URL` environment variable in the Vercel project settings (pointing to your running backend API).
+4. Deploy.
 
-| Variable    | Default                    | Description                          |
-| :---------- | :------------------------- | :----------------------------------- |
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string              |
-| `GPU_ID`    | (empty)                    | Set to specific GPU ID if using CUDA |
+### Common Issues
+
+- **Missing Root Directory**: Ensures your **Root Directory** in Vercel settings is set to `./` (empty), not `frontend`.
+- **Wrong Branch**: Ensure the **Production Branch** is set to `frontend`, not `main`.
 
 ---
 
