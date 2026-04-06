@@ -5,13 +5,9 @@
   --text-dim: #666;
 
   --color-safe: #00ff9d;
-  /* Neon Green */
   --color-warn: #fbbf24;
-  /* Amber */
   --color-danger: #ff003c;
-  /* Cyber Red */
   --color-accent: #00e5ff;
-  /* Cyan */
 
   --border-color: #333;
   --hud-border: 1px solid var(--border-color);
@@ -20,11 +16,18 @@
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+body {
   background-color: var(--bg-color);
   color: var(--text-primary);
   font-family: var(--font-main);
+  font-size: 0.9rem;
   background-image:
     linear-gradient(rgba(20, 255, 0, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20, 255, 0, 0.03) 1px, transparent 1px);
@@ -33,44 +36,81 @@ body {
 
 .App {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .App {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
 }
 
 /* Header */
 .App-header {
-  margin-bottom: 2.5rem;
-  text-align: center;
+  width: 100%;
+  max-width: 760px;
+  margin-bottom: 1.5rem;
+  text-align: left;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
+}
+
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+}
+
+.brand-logo-img {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.brand-title-group {
+  text-align: left;
 }
 
 .brand-title {
   font-family: var(--font-mono);
-  font-size: 2.5rem;
-  /* Bigger */
-  border-bottom: 2px solid var(--color-safe);
-  padding-bottom: 12px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  border-bottom: 1.5px solid var(--color-safe);
+  padding-bottom: 4px;
   display: inline-block;
+  line-height: 1.1;
 }
 
-.version-tag {
-  font-size: 0.8rem;
-  background: var(--color-accent);
-  color: #000;
-  padding: 3px 8px;
-  margin-left: 12px;
-  font-weight: bold;
+.brand-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-top: 4px;
 }
+
 
 /* Main Panel */
 .security-panel {
   width: 100%;
-  max-width: 800px;
-  /* Bigger */
+  max-width: 760px;
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
   padding: 4px;
@@ -80,25 +120,31 @@ body {
 
 .panel-header {
   background: #1a1a1a;
-  padding: 15px 25px;
+  padding: 10px 22px;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 400;
   color: var(--text-dim);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header-left {
+  display: flex;
+  gap: 20px;
 }
 
 .panel-body {
-  padding: 40px;
+  padding: 32px;
 }
 
 /* Upload Zone */
 .drop-target {
   border: 2px dashed var(--border-color);
   background: rgba(255, 255, 255, 0.02);
-  height: 200px;
-  /* Bigger */
+  height: 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -106,7 +152,7 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
 }
 
 .drop-target:hover,
@@ -120,8 +166,8 @@ body {
   position: absolute;
   top: -2px;
   left: -2px;
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   border-top: 2px solid var(--color-safe);
   border-left: 2px solid var(--color-safe);
 }
@@ -131,29 +177,29 @@ body {
   position: absolute;
   bottom: -2px;
   right: -2px;
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   border-bottom: 2px solid var(--color-safe);
   border-right: 2px solid var(--color-safe);
 }
 
 .icon-large {
-  font-size: 3.5rem;
-  /* Bigger */
-  margin-bottom: 1.5rem;
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
   opacity: 0.5;
 }
 
 /* Controls */
 .control-group {
-  margin-top: 35px;
+  margin-top: 28px;
 }
 
 .label-mono {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 400;
   color: var(--color-accent);
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   text-transform: uppercase;
   display: block;
   letter-spacing: 1px;
@@ -162,19 +208,19 @@ body {
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  gap: 12px;
 }
 
 .mode-btn {
   background: #000;
   border: 1px solid var(--border-color);
   color: var(--text-dim);
-  padding: 18px;
-  /* Bigger padding */
+  padding: 14px;
   text-align: center;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 0.82rem;
+  font-weight: 400;
   transition: all 0.2s;
 }
 
@@ -192,25 +238,24 @@ body {
 /* Main Button */
 .btn-execute {
   width: 100%;
-  margin-top: 40px;
-  padding: 22px;
-  /* Bigger */
+  margin-top: 32px;
+  padding: 18px;
   background: var(--color-safe);
   color: #000;
   border: none;
   font-family: var(--font-mono);
-  font-weight: 900;
-  font-size: 1.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   cursor: pointer;
   clip-path: polygon(
-    15px 0,
+    12px 0,
     100% 0,
-    100% calc(100% - 15px),
-    calc(100% - 15px) 100%,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
     0 100%,
-    0 15px
+    0 12px
   );
   transition: all 0.2s;
 }
@@ -228,14 +273,14 @@ body {
 
 /* Console / Status */
 .console-output {
-  margin-top: 35px;
+  margin-top: 28px;
   background: #000;
   border: 1px solid var(--border-color);
-  padding: 20px;
+  padding: 16px;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  height: 150px;
-  /* Bigger height */
+  font-size: 0.75rem;
+  font-weight: 400;
+  height: 130px;
   overflow-y: auto;
   color: var(--color-safe);
   display: flex;
@@ -243,7 +288,7 @@ body {
 }
 
 .console-line {
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   word-break: break-all;
 }
 
@@ -253,10 +298,9 @@ body {
 }
 
 .progress-bar-container {
-  height: 4px;
-  /* Thicker */
+  height: 3px;
   background: #333;
-  margin-top: 15px;
+  margin-top: 14px;
   width: 100%;
 }
 
@@ -265,5 +309,34 @@ body {
   background: var(--color-safe);
   width: 0%;
   transition: width 0.3s;
-  box-shadow: 0 0 8px var(--color-safe);
+  box-shadow: 0 0 6px var(--color-safe);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .panel-body {
+    padding: 20px;
+  }
+
+  .brand-logo-img {
+    height: 42px;
+  }
+
+  .brand-title {
+    font-size: 1.4rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.55rem;
+  }
+
+  .mode-btn {
+    padding: 10px 6px;
+    font-size: 0.75rem;
+  }
+
+  .btn-execute {
+    padding: 14px;
+    font-size: 0.82rem;
+  }
 }

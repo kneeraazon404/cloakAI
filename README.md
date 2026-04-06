@@ -1,76 +1,118 @@
-# CloakAI Frontend (Next.js)
+# CloakAI — AI Image Security Platform
 
-This is the frontend repository for the CloakAI privacy protection system, built with **Next.js**.
-
----
-
-## Features
-
-- **Next.js App Router**: Optimized performance and routing.
-- **Upload Interface**: Drag-and-drop secure file upload.
-- **Privacy Controls**: Selectable protection modes (`low`, `mid`, `high`).
-- **Real-time Status**: Live progress tracking and status updates via API polling.
-- **Secure Download**: Retrieval of processed, cloaked images.
+Protect your images from unauthorized AI training and facial recognition using adversarial cloaking.
 
 ---
 
-## Tech Stack
+## Architecture
 
-- **Next.js 16+**
-- **React 19**
-- **Axios**: API communication
-- **CSS**: Custom styling with responsive design
+```
+Frontend (Next.js) ──→ Backend API (FastAPI)
+                              │
+                         Celery Worker
+                              │
+                        Redis (broker)
+                              │
+                       Fawkes Core (TF)
+```
+
+- **Frontend**: Next.js 16, React 19 — deployed independently on Vercel
+- **API**: FastAPI + Uvicorn — stateless HTTP server
+- **Worker**: Celery — async image processing queue
+- **Broker/Cache**: Redis
+- **Engine**: Fawkes (adversarial perturbation via TensorFlow)
 
 ---
 
-## Quick Start
+## Frontend (Vercel)
 
-### Prerequisites
+The frontend is a fully standalone Next.js app. It communicates with the backend only via `NEXT_PUBLIC_API_URL`. If the variable is unset it falls back to `http://localhost:8000`.
 
-- Node.js (v18+) // Updated for Next.js
+### Deploy to Vercel
 
-### Installation
+1. Connect this repository to a Vercel project.
+2. Set root directory to `/` (repo root).
+3. Add environment variable:
+   ```
+   NEXT_PUBLIC_API_URL=https://your-backend-url
+   NEXT_PUBLIC_SITE_URL=https://your-vercel-url
+   ```
+4. Deploy — Vercel auto-detects Next.js.
+
+### Local development
 
 ```bash
 npm install
-```
-
-### Configuration
-
-Create a `.env.local` file in the root:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-### Run Locally
-
-```bash
-npm run dev
-```
-
-- App runs at: [http://localhost:3000](http://localhost:3000)
-
-### Build for Production
-
-```bash
-npm run build
-npm start
+cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL
+npm run dev                         # http://localhost:3000
 ```
 
 ---
 
-## Deployment (Vercel)
+## Backend (Docker)
 
-1. Connect your repository to Vercel.
-2. Vercel automatically detects Next.js.
-3. Add the `NEXT_PUBLIC_API_URL` environment variable in the Vercel project settings (pointing to your running backend API).
-4. Deploy.
+The backend requires Redis and a machine capable of running TensorFlow (GPU recommended for `mid`/`high` modes).
 
-### Common Issues
+### Environment variables
 
-- **Missing Root Directory**: Ensures your **Root Directory** in Vercel settings is set to `./` (empty), not `frontend`.
-- **Wrong Branch**: Ensure the **Production Branch** is set to `frontend`, not `main`.
+| Variable | Default | Description |
+|---|---|---|
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
+| `ALLOWED_ORIGINS` | `*` | Comma-separated CORS origins |
+| `GPU_ID` | `None` | GPU device ID (leave unset for CPU) |
+
+### Run with Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  redis:
+    image: redis:7-alpine
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_ORIGINS: https://your-vercel-url
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A worker.tasks worker --loglevel=info
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+```
+
+```bash
+docker compose up
+```
+
+### API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Health check |
+| `POST` | `/protect?mode=low&fmt=png` | Upload images, start task |
+| `GET` | `/status/{task_id}` | Poll task status |
+| `GET` | `/download/{task_id}` | Download protected ZIP |
+
+**Protection modes**: `low` (fast), `mid` (balanced), `high` (strongest)
+**Output formats**: `png`, `jpg`
+
+---
+
+## Protection Modes
+
+| Mode | Steps | Strength | Speed |
+|---|---|---|---|
+| `low` | 40 | Standard | ~20s/img |
+| `mid` | 75 | Enhanced | ~45s/img |
+| `high` | 150 | Maximum | ~90s/img |
 
 ---
 

@@ -1,88 +1,66 @@
-# cloud_app/worker.py
-import os
 import logging
+import os
+import time
+import traceback
+
 from celery import Celery
 from fawkes.protection import Fawkes
-import backend.config as celery_config
+import config as celery_config
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Celery('cloak_worker')
+app = Celery("cloak_worker")
 app.config_from_object(celery_config)
 
-# Global Engine instance (lazy loading)
-privacy_engine = None
+_engine: Fawkes | None = None
+_engine_mode: str | None = None
 
-def get_engine_instance(mode="low"):
-    global privacy_engine
-    
-    # Check if we need to (re)initialize
-    should_init = False
-    if privacy_engine is None:
-        should_init = True
-    elif privacy_engine.mode != mode:
-        logger.info(f"Switching mode from {privacy_engine.mode} to {mode}")
-        should_init = True
-        
-    if should_init:
-        # Check for GPU
+
+def get_engine(mode: str) -> Fawkes:
+    global _engine, _engine_mode
+    if _engine is None or _engine_mode != mode:
         gpu_id = os.getenv("GPU_ID", None)
-        
-        logger.info(f"Initializing CloakAI Engine with GPU={gpu_id}, Mode={mode}")
-        # Using the core Fawkes library for protection
-        privacy_engine = Fawkes("extractor_2", gpu_id, batch_size=1, mode=mode)
-        
-    return privacy_engine
+        logger.info(f"Initialising Fawkes engine — mode={mode}, gpu={gpu_id}")
+        _engine = Fawkes("extractor_2", gpu_id, batch_size=1, mode=mode)
+        _engine_mode = mode
+    return _engine
+
 
 @app.task(bind=True)
-def protect_images_task(self, image_paths, mode="low"):
-    """
-    Celery task to run CloakAI protection on a list of images.
-    """
-    logger.info(f"Starting protection task for {len(image_paths)} images. Mode: {mode}")
-    
-    protector = get_engine_instance(mode)
-    
-    # Run protection
-    # Note: run_protection returns status codes: 1=Success, 2=No Face, 3=No Images
-    # We might need to adapt this depending on how run_protection handles file outputs
-    # Currently it saves "_cloaked" files in the same directory.
-    
-    import time
-    import traceback
-    start_time = time.time()
-    
+def protect_images_task(self, image_paths: list, mode: str = "low", fmt: str = "png"):
+    logger.info(f"Task started — {len(image_paths)} image(s), mode={mode}, fmt={fmt}")
+
+    # Fawkes accepts 'jpeg' not 'jpg'
+    output_fmt = "jpeg" if fmt == "jpg" else fmt
+
+    engine = get_engine(mode)
+    start = time.time()
+
     try:
-        status = protector.run_protection(
-            image_paths, 
-            debug=True,
-            format='png'
-        )
-    except Exception as e:
-        logger.error(f"Protection failed: {e}")
+        status = engine.run_protection(image_paths, debug=True, format=output_fmt)
+    except Exception as exc:
+        logger.error(f"Protection failed: {exc}")
         traceback.print_exc()
         return {
             "status": "FAILURE",
-            "error": str(e),
+            "error": str(exc),
             "result_paths": [],
-            "elapsed_time": round(time.time() - start_time, 2)
+            "elapsed_time": round(time.time() - start, 2),
         }
-    
-    elapsed_time = time.time() - start_time
-    
+
+    elapsed = round(time.time() - start, 2)
     result_paths = []
+
     if status == 1:
         for path in image_paths:
-            base, ext = os.path.splitext(path)
-            # Fawkes default naming convention:
-            cloaked_path = f"{base}_cloaked.png"
-            if os.path.exists(cloaked_path):
-                result_paths.append(cloaked_path)
-    
+            base = ".".join(path.split(".")[:-1])
+            cloaked = f"{base}_cloaked.{output_fmt}"
+            if os.path.exists(cloaked):
+                result_paths.append(cloaked)
+
     return {
         "status": status,
         "result_paths": result_paths,
-        "elapsed_time": round(elapsed_time, 2)
+        "elapsed_time": elapsed,
     }

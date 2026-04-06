@@ -167,16 +167,28 @@ export default function Home() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className="brand-title">
-          CLOAK<span style={{ color: "var(--color-safe)" }}>AI</span>
+        <div className="brand-logo-wrap">
+          <img
+            src="/logo-dark.png"
+            alt="CloakAI Logo"
+            className="brand-logo-img"
+          />
+          <div className="brand-title-group">
+            <div className="brand-title">
+              CLOAK<span style={{ color: "var(--color-safe)" }}>AI</span>
+            </div>
+            <div className="brand-subtitle">AI IMAGE SECURITY PLATFORM</div>
+          </div>
         </div>
-        <span className="version-tag">DEFENSE_PLATFORM_V1</span>
       </header>
 
       <div className="security-panel">
         <div className="panel-header">
-          <span>STATUS: {status}</span>
-          <span>SEC_LEVEL: {mode.toUpperCase()}</span>
+          <div className="panel-header-left">
+            <span>STATUS: {status}</span>
+            <span>SEC_LEVEL: {mode.toUpperCase()}</span>
+          </div>
+          <span>v0.1</span>
         </div>
 
         <div className="panel-body">
@@ -192,8 +204,8 @@ export default function Home() {
             <div
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
+                fontSize: "1rem",
+                fontWeight: "500",
               }}
             >
               {selectedFiles

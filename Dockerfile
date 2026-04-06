@@ -1,34 +1,25 @@
-FROM python:3.8-slim
+FROM python:3.11-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    gcc \
-    g++ \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git gcc g++ libgl1-mesa-glx libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy Requirements
-COPY backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy Fawkes Core Lib and Install
-# We assume the context is 'backend' folder? No, usually context is root to catch shared libs.
-# If we move Dockerfile to backend/, we usually build from root: `docker build -f backend/Dockerfile .`
-# So COPY paths depend on context.
-# Let's assume context is project root.
+# Install Fawkes core library
+COPY core /tmp/fawkes_core
+RUN pip install --no-cache-dir /tmp/fawkes_core
 
-COPY backend/core /tmp/fawkes_lib
-RUN pip install --no-cache-dir /tmp/fawkes_lib
+# Copy backend source
+COPY api ./api
+COPY worker ./worker
+COPY config.py .
 
-# Copy Backend Code
-COPY backend /app/backend
-
-# Set PYTHONPATH
 ENV PYTHONPATH=/app
 
-# Default command
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000
+
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
